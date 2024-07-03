@@ -1,0 +1,32 @@
+## PREPARE TOOLCHAIN ##
+# run setup
+chmod +x setup.sh
+./setup.sh
+
+# source umpem_env
+source upmem_env.sh
+
+
+## DPU CODE ###
+
+# compile DPU c-code 
+dpu-upmem-dpurte-clang -DNR_TASKLETS=5 -o filename filename.c 
+
+dpu-upmem-dpurte-clang -DNR_TASKLETS=5 -o helloworld_bin helloworld.c 
+
+# run DPU c-code in lldb 
+dpu-lldb # switch to debugger
+file filename
+process launch
+exit
+
+## HOST APPLICATION ##
+
+# compile host application
+gcc --std=c99 helloworld_host.c -o helloworld_host `dpu-pkg-config --cflags --libs dpu`
+
+
+# run host application
+./helloworld_host
+
+git config --global user.email "johannes-a@t-online.de"
