@@ -22,9 +22,11 @@ exit
 
 ## HOST APPLICATION ##
 
-# compile host application
+# compile host application in C
 gcc --std=c99 helloworld_host.c -o helloworld_host `dpu-pkg-config --cflags --libs dpu`
 
+# compile host application in C++
+g++ --std=c++11 helloworld_host.cpp -o helloworld_host_cpp `dpu-pkg-config --cflags --libs dpu` -g
 
 # run host application
 ./helloworld_host
