@@ -9,3 +9,6 @@ typedef struct {
     float vx, vy, vz;
     float padding;  // Auffüllbyte für 8-Byte-Ausrichtung
 } Body_f;
+
+
+# Mange data transer of one body obejct between HOST and DPU 
