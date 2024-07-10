@@ -1,0 +1,11 @@
+# Creatre suitable data structure 
+## nb_of_bytes must be a multiple of 8
+## sizeof(float) = 4 bytes
+## struct Body_f musst contain even nuber of float variables
+
+typedef struct {
+    float mass;
+    float x, y, z;
+    float vx, vy, vz;
+    float padding;  // Auffüllbyte für 8-Byte-Ausrichtung
+} Body_f;

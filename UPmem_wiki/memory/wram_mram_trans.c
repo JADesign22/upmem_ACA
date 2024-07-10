@@ -2,9 +2,18 @@
 
 #include <mram.h>
 #include <stdint.h>
+#include <stdio.h>
+
 
 
 #define BUFFER_SIZE 256
+
+typedef struct {
+    float mass;
+    float x, y, z;
+    float vx, vy, vz;
+} Body_f;
+
 
 /* Buffer in MRAM. */
 uint8_t __mram_noinit mram_array[BUFFER_SIZE];
@@ -18,6 +27,14 @@ int main() {
   /* Populate the initial buffer. */
   for (int i = 0; i < BUFFER_SIZE; i++)
     input[i] = i;
+
+  //print the nomber of bytes of datatype uint8_t
+  printf("Size of uint8_t: %d\n", sizeof(uint8_t));
+  printf("Size of float: %d\n", sizeof(float));
+  printf("Size of Body_f: %d\n", sizeof(Body_f));
+
+  // print the size o input 
+  printf("Size of input: %d\n", sizeof(input));
   mram_write(input, mram_array, sizeof(input));
 
   /* Copy back the data. */
