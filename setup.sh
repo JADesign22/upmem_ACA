@@ -10,6 +10,7 @@ apt-get install -y python3-pip
 # Install Python packages using pip
 pip install six
 pip install psutil
+pip install matplotlib 
 
 # Source the upmem_env.sh script (assuming it's in the current directory)
 source upmem_env.sh
