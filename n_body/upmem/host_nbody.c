@@ -10,6 +10,8 @@
 #define DPU_BINARY "./dpu_nbody"
 #endif
 
+#define NOF_BODIES 4
+
 // Struktur zur Darstellung eines Körpers (float)
 typedef struct {
     float mass;
@@ -20,16 +22,28 @@ typedef struct {
 
 void write_results_to_file(const char *filename, Body_f *bodies, size_t num_bodies);
 
-int main() {
-    // Beispiel mit 3 Körpern (float)
-    Body_f bodies[] = {
-        {1.0e10f, 0, 0, 0, 0, 0, 0, 0},
-        {1.0e10f, 1, 0, 0, 0, 1, 0, 0},
-        {1.0e10f, 0, 0, 1, 0, 1, 0, 0},
-        {1.0e10f, 0, 1, 0, -1, 0, 0, 0}
-    };
-    size_t num_bodies = sizeof(bodies) / sizeof(bodies[0]);
+// methode to create dummy data of n bodies. The dummy data is based on n not on random values
+void create_dummy_data(Body_f *bodies, size_t num_bodies) {
+    for (size_t i = 0; i < num_bodies; ++i) {
+        bodies[i].mass = 1.0e10f;
+        bodies[i].x = num_bodies % (i + 1);
+        bodies[i].y = num_bodies % (i + 2);
+        bodies[i].z = num_bodies % (i + 3);
+        bodies[i].vx = num_bodies % (i + 1);
+        bodies[i].vy = num_bodies % (i + 2);
+        bodies[i].vz = num_bodies % (i + 3);
+    }
+}
 
+int main() {
+
+    Body_f bodies[NOF_BODIES];
+    create_dummy_data(bodies, NOF_BODIES);
+
+    //print all bodies
+    for (size_t i = 0; i < NOF_BODIES; ++i) {
+        printf("Body %zu: mass=%f, x=%f, y=%f, z=%f, vx=%f, vy=%f, vz=%f\n", i, bodies[i].mass, bodies[i].x, bodies[i].y, bodies[i].z, bodies[i].vx, bodies[i].vy, bodies[i].vz);
+    }
     
     // DPU-Initialisierung
     struct dpu_set_t dpu_set, dpu;
@@ -42,7 +56,7 @@ int main() {
 
     // Daten in die DPU kopieren
     DPU_FOREACH(dpu_set, dpu) {
-        DPU_ASSERT(dpu_copy_to(dpu, "mram_bodies", 0, bodies, sizeof(Body_f) * num_bodies));
+        DPU_ASSERT(dpu_copy_to(dpu, "mram_bodies", 0, bodies, sizeof(Body_f) * NOF_BODIES));
     }
     printf("Data copied to DPU\n");
 
@@ -57,11 +71,11 @@ int main() {
 
     // Daten von der DPU zurückkopieren
     DPU_FOREACH(dpu_set, dpu) {
-        DPU_ASSERT(dpu_copy_from(dpu, "mram_bodies", 0, bodies, sizeof(Body_f) * num_bodies));
+        DPU_ASSERT(dpu_copy_from(dpu, "mram_bodies", 0, bodies, sizeof(Body_f) * NOF_BODIES));
     }
 
     // Ergebnisse in eine Textdatei schreiben
-    write_results_to_file("nbody_results.csv", bodies, num_bodies);
+    write_results_to_file("nbody_results.csv", bodies, NOF_BODIES);
 
     // DPU freigeben
     DPU_ASSERT(dpu_free(dpu_set));
