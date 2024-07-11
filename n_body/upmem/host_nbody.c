@@ -25,6 +25,7 @@ int main() {
     Body_f bodies[] = {
         {1.0e10f, 0, 0, 0, 0, 0, 0, 0},
         {1.0e10f, 1, 0, 0, 0, 1, 0, 0},
+        {1.0e10f, 0, 0, 1, 0, 1, 0, 0},
         {1.0e10f, 0, 1, 0, -1, 0, 0, 0}
     };
     size_t num_bodies = sizeof(bodies) / sizeof(bodies[0]);
