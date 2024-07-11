@@ -18,7 +18,7 @@ typedef struct {
     float padding;  // Auffüllbyte für 8-Byte-Ausrichtung
 } Body_f;
 
-void write_results_to_file(const char *filename, Body_f *bodies, size_t num_bodies, int steps);
+void write_results_to_file(const char *filename, Body_f *bodies, size_t num_bodies);
 
 int main() {
     // Beispiel mit 3 Körpern (float)
@@ -60,7 +60,7 @@ int main() {
     }
 
     // Ergebnisse in eine Textdatei schreiben
-    write_results_to_file("nbody_results.csv", bodies, num_bodies, 100);
+    write_results_to_file("nbody_results.csv", bodies, num_bodies);
 
     // DPU freigeben
     DPU_ASSERT(dpu_free(dpu_set));
@@ -68,7 +68,7 @@ int main() {
     return 0;
 }
 
-void write_results_to_file(const char *filename, Body_f *bodies, size_t num_bodies, int steps) {
+void write_results_to_file(const char *filename, Body_f *bodies, size_t num_bodies) {
     FILE *outfile = fopen(filename, "w");
     if (outfile == NULL) {
         perror("Error opening file");
@@ -79,11 +79,11 @@ void write_results_to_file(const char *filename, Body_f *bodies, size_t num_bodi
     fprintf(outfile, "step;body_id;x;y;z\n");
 
     // Daten schreiben
-    for (int step = 0; step < steps; ++step) {
-        for (size_t i = 0; i < num_bodies; ++i) {
-            fprintf(outfile, "%d;%zu;%f;%f;%f\n", step, i, bodies[i].x, bodies[i].y, bodies[i].z);
-        }
+
+    for (size_t i = 0; i < num_bodies; ++i) {
+        fprintf(outfile, "%d;%zu;%f;%f;%f\n", 0, i, bodies[i].x, bodies[i].y, bodies[i].z);
     }
+    
 
     fclose(outfile);
 }
