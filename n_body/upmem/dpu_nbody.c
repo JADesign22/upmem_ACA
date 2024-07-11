@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <alloc.h>
 #include <mram.h>
-#include <perfcounter.h>
 #include <barrier.h>
 #include <defs.h>
 
@@ -11,7 +10,7 @@
 #define G 6.67430e-11f
 #define DT 1e-3f
 
-// Number of bodies
+
 #define nof_bodies 4
 
 // Structure to represent a body (float)
@@ -23,9 +22,11 @@ typedef struct {
 } Body_f;
 
 __mram_noinit Body_f mram_bodies[nof_bodies];
-float fx[nof_bodies], fy[nof_bodies], fz[nof_bodies];
 
+
+float fx[nof_bodies], fy[nof_bodies], fz[nof_bodies];
 Body_f local_bodies[nof_bodies];
+
 
 BARRIER_INIT(my_barrier, NR_TASKLETS);
 
@@ -50,8 +51,9 @@ void computeForce_f(const Body_f *a, const Body_f *b, float *fx, float *fy, floa
 int main() {
     printf("Tasklet %d: Enter Main\n", me());
 
-    // Initialize the performance counter
-    //perfcounter_config(COUNT_CYCLES, true);
+    if (me() > used_tasklets) {
+        used_tasklets = me();
+    }
 
     // Copy data from MRAM to WRAM
     if (me() == 0) {
