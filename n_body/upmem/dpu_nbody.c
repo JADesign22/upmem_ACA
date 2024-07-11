@@ -11,7 +11,7 @@
 #define DT 1e-3f
 
 
-#define nof_bodies 4
+#define NOF_BODIES 4
 
 // Structure to represent a body (float)
 typedef struct {
@@ -21,11 +21,11 @@ typedef struct {
     float padding;  // Padding byte for 8-byte alignment
 } Body_f;
 
-__mram_noinit Body_f mram_bodies[nof_bodies];
+__mram_noinit Body_f mram_bodies[NOF_BODIES];
 
 
-float fx[nof_bodies], fy[nof_bodies], fz[nof_bodies];
-Body_f local_bodies[nof_bodies];
+float fx[NOF_BODIES], fy[NOF_BODIES], fz[NOF_BODIES];
+Body_f local_bodies[NOF_BODIES];
 
 
 BARRIER_INIT(my_barrier, NR_TASKLETS);
@@ -51,10 +51,6 @@ void computeForce_f(const Body_f *a, const Body_f *b, float *fx, float *fy, floa
 int main() {
     printf("Tasklet %d: Enter Main\n", me());
 
-    if (me() > used_tasklets) {
-        used_tasklets = me();
-    }
-
     // Copy data from MRAM to WRAM
     if (me() == 0) {
         mram_read(mram_bodies, local_bodies, sizeof(local_bodies));
@@ -65,7 +61,7 @@ int main() {
     for (int step = 0; step < 2; ++step) {
         // Initialize forces
         if (me() == 0) {
-            for (int i = 0; i < nof_bodies; ++i) {
+            for (int i = 0; i < NOF_BODIES; ++i) {
                 fx[i] = fy[i] = fz[i] = 0.0f;
             }
         }
@@ -73,8 +69,8 @@ int main() {
         barrier_wait(&my_barrier);
 
         // Calculate forces
-        for (int i = me(); i < nof_bodies; i += NR_TASKLETS) {
-            for (int j = i + 1; j < nof_bodies; ++j) {
+        for (int i = me(); i < NOF_BODIES; i += NR_TASKLETS) {
+            for (int j = i + 1; j < NOF_BODIES; ++j) {
                 float fx_ij, fy_ij, fz_ij;
                 computeForce_f(&local_bodies[i], &local_bodies[j], &fx_ij, &fy_ij, &fz_ij);
 
@@ -96,7 +92,7 @@ int main() {
         barrier_wait(&my_barrier);
 
         // Update positions and velocities
-        for (int i = me(); i < nof_bodies; i += NR_TASKLETS) {
+        for (int i = me(); i < NOF_BODIES; i += NR_TASKLETS) {
             float vx = fx[i] / local_bodies[i].mass * DT;
             float vy = fy[i] / local_bodies[i].mass * DT;
             float vz = fz[i] / local_bodies[i].mass * DT;
