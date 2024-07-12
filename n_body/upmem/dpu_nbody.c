@@ -11,7 +11,7 @@
 #define DT 1e-3f
 
 
-#define NOF_BODIES 4
+#define NOF_BODIES 64
 
 // Structure to represent a body (float)
 typedef struct {
@@ -33,14 +33,17 @@ BARRIER_INIT(my_barrier, NR_TASKLETS);
 // Math methods
 float fabsf(float x);
 float sqrtf(float x);
+float fast_sqrtf(float x);
 
 // Calculate the force between two bodies
 void computeForce_f(const Body_f *a, const Body_f *b, float *fx, float *fy, float *fz) {
     float dx = b->x - a->x;
     float dy = b->y - a->y;
     float dz = b->z - a->z;
-    float dist = sqrtf(dx * dx + dy * dy + dz * dz);
+    //float dist = sqrtf(dx * dx + dy * dy + dz * dz);
+    float dist = fast_sqrtf(dx * dx + dy * dy + dz * dz);
     float dist3 = dist * dist * dist;
+    
     float force = (G * a->mass * b->mass) / dist3;
 
     *fx = force * dx;
@@ -53,10 +56,11 @@ int main() {
 
     // Copy data from MRAM to WRAM
     if (me() == 0) {
+        
         mram_read(mram_bodies, local_bodies, sizeof(local_bodies));
         printf("Tasklet %d: Data copied from MRAM to WRAM\n", me());
     }
-
+    
     // Calculation of forces and update of positions and velocities
     for (int step = 0; step < 2; ++step) {
         // Initialize forces
@@ -67,7 +71,7 @@ int main() {
         }
 
         barrier_wait(&my_barrier);
-
+        
         // Calculate forces
         for (int i = me(); i < NOF_BODIES; i += NR_TASKLETS) {
             for (int j = i + 1; j < NOF_BODIES; ++j) {
@@ -90,7 +94,7 @@ int main() {
         printf("Tasklet %d: Force calculation done\n", me());
 
         barrier_wait(&my_barrier);
-
+        
         // Update positions and velocities
         for (int i = me(); i < NOF_BODIES; i += NR_TASKLETS) {
             float vx = fx[i] / local_bodies[i].mass * DT;
@@ -112,12 +116,17 @@ int main() {
         // Print tasklet ID and position update done
         printf("Tasklet %d: Position update done\n", me());
         barrier_wait(&my_barrier);
+        
     }
-
+    
     // Copy data from WRAM back to MRAM
     if (me() == 0) {
         mram_write(local_bodies, mram_bodies, sizeof(local_bodies));
         printf("Tasklet %d: Data copied from WRAM to MRAM\n", me());
+        //print size of local_bodies
+        printf("Size of local_bodies: %d\n", sizeof(local_bodies));
+        // print size of single body object
+        printf("Size of single body object: %d\n", sizeof(local_bodies[0]));
     }
 
     return 0;
@@ -138,3 +147,17 @@ float sqrtf(float x) {
 
     return guess;
 }
+
+#include <stdint.h>
+
+float fast_sqrtf(float x) {
+    // Fast Inverse Square Root
+    union {
+        float f;
+        uint32_t i;
+    } conv = { x };
+    conv.i = 0x5f3759df - (conv.i >> 1);
+    conv.f *= 1.5f - (x * 0.5f * conv.f * conv.f);
+    return x * conv.f;
+}
+

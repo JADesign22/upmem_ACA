@@ -12,3 +12,24 @@ typedef struct {
 
 
 # Mange data transer of one body obejct between HOST and DPU 
+
+
+# Aufteilung der Arbeit für die Tasklets (Goodnotes)
+## Tasklet 0 Manger -> Trasnfer Bodies WRAM-MRAM
+## Calc Forces: nof_used_tasklets = nof_bodies - 1
+## Calc PosVelo: nof_used_tasklets = nof_bodies
+
+
+Question how man bodies can be stored in WRAM?
+WARM = 64 KB
+body = 32 Byte (8*4)
+Round 2200 bodies
+
+ISSUE max number of bodies for single MRAM copy is == 64 bodies = 64*32 = 2048
+Probelm mram read function only allows 208 bytes: /workspaces/upmem_ACA/bin/../share/upmem/include/syslib/mram.h:36:20: note: from 'diagnose_if' attribute on 'mram_read':
+    __attribute__((diagnose_if(nb_of_bytes > 2048, "mram_read: nb_of_bytes must not be higher than 2048", "error")))
+
+
+ISSUE mac number of bodies == 7 ?Why? Only when calc is active?
+Identfy bottlenecis the calculation part, especcly the sqrtf-methode with al lot of multplications and 
+Replace with fast_f methode -> compine these two : accuraqcy and time? 

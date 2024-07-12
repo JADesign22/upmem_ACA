@@ -10,9 +10,8 @@ source upmem_env.sh
 ## DPU CODE ###
 
 # compile DPU c-code 
-dpu-upmem-dpurte-clang -DNR_TASKLETS=5 -o filename filename.c 
-
-dpu-upmem-dpurte-clang -DNR_TASKLETS=5 -o helloworld_bin helloworld.c 
+dpu-upmem-dpurte-clang -DNR_TASKLETS=3 -o helloworld_bin helloworld.c 
+dpu-upmem-dpurte-clang -DNR_TASKLETS=4 -o dpu_nbody dpu_nbody.c 
 
 # run DPU c-code in lldb 
 dpu-lldb # switch to debugger
@@ -23,12 +22,21 @@ exit
 ## HOST APPLICATION ##
 
 # compile host application in C
-gcc --std=c99 helloworld_host.c -o helloworld_host `dpu-pkg-config --cflags --libs dpu`
+gcc --std=c99 host_nbody.c -o host_nbody `dpu-pkg-config --cflags --libs dpu`
 
 # compile host application in C++
 g++ --std=c++11 helloworld_host.cpp -o helloworld_host_cpp `dpu-pkg-config --cflags --libs dpu` -g
+
+g++ --std=c++11 easy_n_body_simu.cpp -o easy_n_body_simu `dpu-pkg-config --cflags --libs dpu` -g
 
 # run host application
 ./helloworld_host
 
 git config --global user.email "johannes-a@t-online.de"
+
+
+
+
+# debug
+dpu-upmem-dpurte-clang -O2 -o host_debug_example_dpu host_debug_example_dpu.c
+gcc --std=c99 -O2 -g -o host_debug_example_host host_debug_example_host.c `dpu-pkg-config --cflags --libs dpu`
