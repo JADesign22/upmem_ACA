@@ -1,3 +1,9 @@
+/*
+ * Project: UPmem ACA, N-body simulation
+ * Course: Advanced Computer Architecture SS24, University of Heidelberg
+ * Authors: Albrecht, Burr, Jahnel
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -12,17 +18,17 @@
 
 #define NOF_BODIES 4
 
-// Struktur zur Darstellung eines Körpers (float)
+// Structure to represent a body (float)
 typedef struct {
     float mass;
     float x, y, z;
     float vx, vy, vz;
-    float padding;  // Auffüllbyte für 8-Byte-Ausrichtung
+    float padding; // Padding byte for 8-byte alignment
 } Body_f;
 
 void write_results_to_file(const char *filename, Body_f *bodies, size_t num_bodies);
 
-// methode to create dummy data of n bodies. The dummy data is based on n not on random values
+// Method to create dummy data of n bodies. The dummy data is based on n, not on random values
 void create_dummy_data(Body_f *bodies, size_t num_bodies) {
     for (size_t i = 0; i < num_bodies; ++i) {
         bodies[i].mass = 1.0e10f;
@@ -36,48 +42,47 @@ void create_dummy_data(Body_f *bodies, size_t num_bodies) {
 }
 
 int main() {
-
     Body_f bodies[NOF_BODIES];
     create_dummy_data(bodies, NOF_BODIES);
 
-    //print all bodies
+    // Print all bodies
     for (size_t i = 0; i < NOF_BODIES; ++i) {
         printf("Body %zu: mass=%f, x=%f, y=%f, z=%f, vx=%f, vy=%f, vz=%f\n", i, bodies[i].mass, bodies[i].x, bodies[i].y, bodies[i].z, bodies[i].vx, bodies[i].vy, bodies[i].vz);
     }
     
-    // DPU-Initialisierung
+    // DPU initialization
     struct dpu_set_t dpu_set, dpu;
     DPU_ASSERT(dpu_alloc(1, NULL, &dpu_set));
     printf("DPU allocated\n");
 
-    // DPU-Programm laden
+    // Load DPU program
     DPU_ASSERT(dpu_load(dpu_set, DPU_BINARY, NULL));
     printf("DPU loaded\n");
 
-    // Daten in die DPU kopieren
+    // Copy data to the DPU
     DPU_FOREACH(dpu_set, dpu) {
         DPU_ASSERT(dpu_copy_to(dpu, "mram_bodies", 0, bodies, sizeof(Body_f) * NOF_BODIES));
     }
     printf("Data copied to DPU\n");
 
-    // DPU-Programm ausführen
+    // Launch DPU program
     DPU_ASSERT(dpu_launch(dpu_set, DPU_SYNCHRONOUS));
     printf("DPU launched\n");
 
-    // DPU-Logs anzeigen (optional)
+    // Display DPU logs (optional)
     DPU_FOREACH(dpu_set, dpu) {
         DPU_ASSERT(dpu_log_read(dpu, stdout));
     }
 
-    // Daten von der DPU zurückkopieren
+    // Copy data back from the DPU
     DPU_FOREACH(dpu_set, dpu) {
         DPU_ASSERT(dpu_copy_from(dpu, "mram_bodies", 0, bodies, sizeof(Body_f) * NOF_BODIES));
     }
 
-    // Ergebnisse in eine Textdatei schreiben
+    // Write results to a text file
     write_results_to_file("nbody_results.csv", bodies, NOF_BODIES);
 
-    // DPU freigeben
+    // Free DPU
     DPU_ASSERT(dpu_free(dpu_set));
 
     return 0;
@@ -90,15 +95,13 @@ void write_results_to_file(const char *filename, Body_f *bodies, size_t num_bodi
         exit(EXIT_FAILURE);
     }
 
-    // CSV-Header schreiben
+    // Write CSV header
     fprintf(outfile, "step;body_id;x;y;z\n");
 
-    // Daten schreiben
-
+    // Write data
     for (size_t i = 0; i < num_bodies; ++i) {
         fprintf(outfile, "%d;%zu;%f;%f;%f\n", 0, i, bodies[i].x, bodies[i].y, bodies[i].z);
     }
-    
 
     fclose(outfile);
 }
