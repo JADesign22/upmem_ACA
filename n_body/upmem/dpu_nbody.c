@@ -11,7 +11,7 @@
 #define DT 1e-3f
 
 
-#define NOF_BODIES 64
+#define NOF_BODIES 4
 
 // Structure to represent a body (float)
 typedef struct {
@@ -147,8 +147,6 @@ float sqrtf(float x) {
 
     return guess;
 }
-
-#include <stdint.h>
 
 float fast_sqrtf(float x) {
     // Fast Inverse Square Root

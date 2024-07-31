@@ -10,7 +10,7 @@
 #define DPU_BINARY "./dpu_nbody"
 #endif
 
-#define NOF_BODIES 64
+#define NOF_BODIES 4
 
 // Struktur zur Darstellung eines Körpers (float)
 typedef struct {
