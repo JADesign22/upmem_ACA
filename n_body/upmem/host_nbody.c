@@ -79,29 +79,9 @@ int main() {
         DPU_ASSERT(dpu_copy_from(dpu, "mram_bodies", 0, bodies, sizeof(Body_f) * NOF_BODIES));
     }
 
-    // Write results to a text file
-    write_results_to_file("nbody_results.csv", bodies, NOF_BODIES);
-
     // Free DPU
     DPU_ASSERT(dpu_free(dpu_set));
 
     return 0;
 }
 
-void write_results_to_file(const char *filename, Body_f *bodies, size_t num_bodies) {
-    FILE *outfile = fopen(filename, "w");
-    if (outfile == NULL) {
-        perror("Error opening file");
-        exit(EXIT_FAILURE);
-    }
-
-    // Write CSV header
-    fprintf(outfile, "step;body_id;x;y;z\n");
-
-    // Write data
-    for (size_t i = 0; i < num_bodies; ++i) {
-        fprintf(outfile, "%d;%zu;%f;%f;%f\n", 0, i, bodies[i].x, bodies[i].y, bodies[i].z);
-    }
-
-    fclose(outfile);
-}

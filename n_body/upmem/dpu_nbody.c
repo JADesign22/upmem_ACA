@@ -13,7 +13,7 @@
 #include <defs.h>
 
 #define NOF_BODIES 4
-#define NOF_STEPS 4
+#define NOF_STEPS 10
 
 // Structure to represent a body (float)
 typedef struct {
